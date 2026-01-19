@@ -1,0 +1,53 @@
+<h1 class="text-3xl font-bold text-gray-900 mb-6">Welcome to Find Science by Acme Science!</h1>
+
+<p class="text-gray-600 mb-6">This skeleton demonstrates the following features:</p>
+
+<ul class="space-y-2 mb-8">
+    <li class="flex items-center gap-2">
+        <span class="inline-block w-2 h-2 bg-blue-500 rounded-full"></span>
+        <strong class="text-gray-700">Poem</strong> <span class="text-gray-600">- Web framework with routing</span>
+    </li>
+    <li class="flex items-center gap-2">
+        <span class="inline-block w-2 h-2 bg-blue-500 rounded-full"></span>
+        <strong class="text-gray-700">Sailfish</strong> <span class="text-gray-600">- Fast template engine</span>
+    </li>
+    <li class="flex items-center gap-2">
+        <span class="inline-block w-2 h-2 bg-blue-500 rounded-full"></span>
+        <strong class="text-gray-700">HTMX</strong> <span class="text-gray-600">- Dynamic updates without JavaScript</span>
+    </li>
+    <li class="flex items-center gap-2">
+        <span class="inline-block w-2 h-2 bg-blue-500 rounded-full"></span>
+        <strong class="text-gray-700">Tailwind CSS v4</strong> <span class="text-gray-600">- Utility-first styling</span>
+    </li>
+    <li class="flex items-center gap-2">
+        <span class="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
+        <strong class="text-gray-700">Cookies</strong> <span class="text-gray-600">- Visit counter: <span class="font-mono bg-gray-100 px-2 py-0.5 rounded"><%= self.visit_count %></span></span>
+    </li>
+    <li class="flex items-center gap-2">
+        <span class="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
+        <strong class="text-gray-700">Sessions</strong> <span class="text-gray-600">- See below</span>
+    </li>
+    <li class="flex items-center gap-2">
+        <span class="inline-block w-2 h-2 bg-purple-500 rounded-full"></span>
+        <strong class="text-gray-700">CSRF Protection</strong> <span class="text-gray-600">- See the form demo</span>
+    </li>
+    <li class="flex items-center gap-2">
+        <span class="inline-block w-2 h-2 bg-purple-500 rounded-full"></span>
+        <strong class="text-gray-700">Multipart Upload</strong> <span class="text-gray-600">- See the upload demo</span>
+    </li>
+    <li class="flex items-center gap-2">
+        <span class="inline-block w-2 h-2 bg-orange-500 rounded-full"></span>
+        <strong class="text-gray-700">Server-Sent Events</strong> <span class="text-gray-600">- See the SSE demo (uses HTMX SSE extension)</span>
+    </li>
+    <li class="flex items-center gap-2">
+        <span class="inline-block w-2 h-2 bg-orange-500 rounded-full"></span>
+        <strong class="text-gray-700">Embedded Static Files</strong> <span class="text-gray-600">- Assets embedded in binary</span>
+    </li>
+</ul>
+
+<div class="border-t pt-6">
+    <h2 class="text-xl font-semibold text-gray-800 mb-4">Session Demo (with HTMX)</h2>
+    <div id="session-section">
+        <%+ self.session %>
+    </div>
+</div>

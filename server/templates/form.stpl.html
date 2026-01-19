@@ -1,0 +1,23 @@
+<h1 class="text-3xl font-bold text-gray-900 mb-6">CSRF Protected Form</h1>
+
+<p class="text-gray-600 mb-6">This form includes a CSRF token for protection against cross-site request forgery.</p>
+
+<form method="post" action="/form" class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+    <input type="hidden" name="csrf_token" value="<%= self.csrf_token %>">
+    <label class="block mb-4">
+        <span class="text-gray-700 font-medium">Message:</span>
+        <input type="text" name="message" required
+            class="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+    </label>
+    <button type="submit"
+        class="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
+        Submit
+    </button>
+</form>
+
+<% if let Some(ref msg) = self.message { %>
+<div class="mt-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-r-lg">
+    <h2 class="text-lg font-semibold text-green-800 mb-2">Received Message</h2>
+    <p class="text-green-700"><%= msg %></p>
+</div>
+<% } %>

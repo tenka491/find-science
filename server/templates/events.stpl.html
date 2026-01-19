@@ -1,0 +1,38 @@
+<h1 class="text-3xl font-bold text-gray-900 mb-6">Server-Sent Events Demo</h1>
+
+<p class="text-gray-600 mb-6">This page demonstrates SSE (Server-Sent Events) for real-time updates using the HTMX SSE extension. Different named events update different parts of the UI.</p>
+
+<div hx-ext="sse" sse-connect="/sse" class="space-y-6">
+
+    <!-- Status indicator -->
+    <div class="flex items-center gap-3">
+        <span class="text-gray-700 font-medium">Status:</span>
+        <span sse-swap="status" hx-swap="innerHTML" class="text-blue-500">
+            Streaming...
+        </span>
+    </div>
+
+    <!-- Progress bar -->
+    <div>
+        <div class="flex justify-between mb-2">
+            <span class="text-gray-700 font-medium">Progress:</span>
+            <span sse-swap="counter" hx-swap="innerHTML" class="text-gray-600">
+                <span class="text-2xl font-bold text-blue-600">0</span> / 10
+            </span>
+        </div>
+        <div class="h-4 bg-gray-200 rounded-full overflow-hidden">
+            <div sse-swap="progress" hx-swap="innerHTML" class="h-full">
+                <div class="h-full bg-blue-600 transition-all duration-300" style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event log -->
+    <div>
+        <h2 class="text-lg font-semibold text-gray-800 mb-2">Event Log</h2>
+        <div sse-swap="log" hx-swap="beforeend"
+            class="font-mono text-sm bg-gray-900 text-green-400 p-4 rounded-lg h-48 overflow-y-auto">
+        </div>
+    </div>
+
+</div>

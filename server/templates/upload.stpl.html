@@ -1,0 +1,35 @@
+<h1 class="text-3xl font-bold text-gray-900 mb-6">Multipart File Upload</h1>
+
+<p class="text-gray-600 mb-6">Upload a file to see multipart form handling in action.</p>
+
+<form method="post" action="/upload" enctype="multipart/form-data" class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+    <label class="block mb-4">
+        <span class="text-gray-700 font-medium">Select a file:</span>
+        <input type="file" name="file" required
+            class="mt-2 block w-full text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white file:font-medium hover:file:bg-blue-700 file:cursor-pointer file:transition-colors">
+    </label>
+    <button type="submit"
+        class="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
+        Upload
+    </button>
+</form>
+
+<% if let Some(ref info) = self.file_info { %>
+<div class="mt-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-r-lg">
+    <h2 class="text-lg font-semibold text-green-800 mb-3">Uploaded File Info</h2>
+    <dl class="space-y-2">
+        <div class="flex">
+            <dt class="font-medium text-green-700 w-32">Filename:</dt>
+            <dd class="text-green-800"><%= info.name %></dd>
+        </div>
+        <div class="flex">
+            <dt class="font-medium text-green-700 w-32">Size:</dt>
+            <dd class="text-green-800"><%= info.size %> bytes</dd>
+        </div>
+        <div class="flex">
+            <dt class="font-medium text-green-700 w-32">Content Type:</dt>
+            <dd class="text-green-800"><%= info.content_type %></dd>
+        </div>
+    </dl>
+</div>
+<% } %>
