@@ -36,3 +36,116 @@ compiler runs, which prevents a lot of potential bugs, though at the
 cost of requiring a valid database setup to be in place before we can
 even compile the code. It also sometimes needs additional information
 in order to properly interpret the SQL. Worth it, though.
+
+
+---
+
+## ✅ SQLite Setup & SQLx CLI (New Developer Guide)
+
+This project uses **SQLite** for the database and **SQLx** for migrations and database access.
+
+---
+
+### 1. Install `sqlx-cli`
+
+`sqlx-cli` is a command line tool used to manage migrations and run database commands.
+
+```bash
+cargo install sqlx-cli
+```
+
+Verify the installation:
+
+```bash
+sqlx --version
+```
+
+---
+
+### 2. Set the database URL
+
+SQLx needs to know where your SQLite database file is located.
+Set the environment variable **in your terminal session**:
+
+```bash
+export DATABASE_URL=sqlite://data.db
+```
+
+> ⚠️ Important: The URL **must include `sqlite://`**.
+> `sqlite:data.db` will not work reliably.
+
+---
+
+### 3. Create the database file (if needed)
+
+If the database file does not exist, create it:
+
+```bash
+touch data.db
+```
+
+---
+
+### 4. Run migrations
+
+```bash
+sqlx migrate run
+```
+
+---
+
+### 5. Start the server
+
+```bash
+cargo run
+```
+
+---
+
+## 🧰 Debugging Tips (Common Issues)
+
+### ❌ Error: `unable to open database file (code: 14)`
+
+This means SQLx cannot open or create the SQLite file.
+
+Common causes:
+
+#### 1. `DATABASE_URL` is not set
+
+```bash
+echo $DATABASE_URL
+```
+
+If it’s empty, set it again:
+
+```bash
+export DATABASE_URL=sqlite://data.db
+```
+
+#### 2. You are in the wrong directory
+
+Make sure you are in the project root (where `Cargo.toml` lives):
+
+```bash
+pwd
+ls -la
+```
+
+#### 3. The database file does not exist or is not writable
+
+```bash
+touch data.db
+chmod 664 data.db
+```
+
+---
+
+## ⚡ Quick Start Summary
+
+```bash
+cargo install sqlx-cli
+export DATABASE_URL=sqlite://data.db
+touch data.db
+sqlx migrate run
+cargo run
+```
