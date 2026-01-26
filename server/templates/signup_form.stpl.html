@@ -1,0 +1,42 @@
+<h1 class="text-3xl font-bold text-gray-900 mb-6">Sign Up</h1>
+
+<p class="text-gray-600 mb-6">Already have an account? <a href="/login">Log In here</a>.</p>
+
+<form method="POST" action="/signup" class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+    <input type="hidden" name="csrf_token" value="<%= self.csrf_token %>">
+    <label class="block mb-4">
+        <span class="text-gray-700 font-medium">Username:</span>
+        <input type="text" name="username" required
+            class="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+    </label>
+    <label class="block mb-4">
+        <span class="text-gray-700 font-medium">Email Address:</span>
+        <input type="text" name="email" required
+            class="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+    </label>
+    <label class="block mb-4">
+        <span class="text-gray-700 font-medium">Zip/Postal Code:</span>
+        <input type="text" name="postalCode" required
+            class="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+    </label>
+    <label class="block mb-4">
+        <span class="text-gray-700 font-medium">Password:</span>
+        <input type="text" name="password" required
+            class="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+    </label>
+    <label class="block mb-4">
+        <span class="text-gray-700 font-medium">Confirm Password:</span>
+        <input type="text" name="confirmPassword" required
+            class="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+    </label>
+
+    <button type="reset"
+        class="px-6 py-2 font-medium rounded-lg hover:bg-blue-700 transition-colors">
+        Cancel
+    </button>
+
+    <button type="submit"
+        class="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
+        Sign Up
+    </button>
+</form>
