@@ -1,3 +1,5 @@
+mod routes;
+mod render;
 use std::sync::OnceLock;
 use std::time::Duration;
 
@@ -19,6 +21,13 @@ use poem::{
 use sailfish::TemplateOnce;
 use sqlx::{Pool, Sqlite, SqlitePool};
 use tracing::info;
+
+use crate::render::render_with_layout;
+use routes::signup;
+use routes::signup_success;
+use routes::login;
+use routes::search;
+use routes::llm;
 
 #[derive(rust_embed::RustEmbed)]
 #[folder = "static"]
@@ -102,28 +111,21 @@ impl SessionStorage for SqliteSessionStorage {
 // Template structures
 
 #[derive(TemplateOnce)]
-#[template(path = "layout.stpl.html")]
-struct LayoutTemplate<C: TemplateOnce> {
-    title: String,
-    content: C,
-}
-
-#[derive(TemplateOnce)]
-#[template(path = "index.stpl.html")]
+#[template(path = "examples/index.stpl.html")]
 struct IndexTemplate {
     visit_count: u32,
     session: SessionPartialTemplate,
 }
 
 #[derive(TemplateOnce)]
-#[template(path = "form.stpl.html")]
+#[template(path = "examples/form.stpl.html")]
 struct FormTemplate {
     csrf_token: String,
     message: Option<String>,
 }
 
 #[derive(TemplateOnce)]
-#[template(path = "upload.stpl.html")]
+#[template(path = "examples/upload.stpl.html")]
 struct UploadTemplate {
     file_info: Option<FileInfo>,
 }
@@ -135,28 +137,13 @@ struct FileInfo {
 }
 
 #[derive(TemplateOnce)]
-#[template(path = "events.stpl.html")]
+#[template(path = "examples/events.stpl.html")]
 struct EventsTemplate;
 
 #[derive(TemplateOnce)]
-#[template(path = "session_partial.stpl.html")]
+#[template(path = "examples/session_partial.stpl.html")]
 struct SessionPartialTemplate {
     username: String,
-}
-
-fn render_with_layout(
-    title: impl Into<String>,
-    content: impl TemplateOnce,
-) -> Result<Html<String>> {
-    let layout = LayoutTemplate {
-        title: title.into(),
-        content,
-    };
-    Ok(Html(
-        layout
-            .render_once()
-            .map_err(poem::error::InternalServerError)?,
-    ))
 }
 
 // Handlers
@@ -184,21 +171,21 @@ async fn index(cookies: &CookieJar, session: &Session) -> Result<Html<String>> {
     )
 }
 
-#[derive(serde::Deserialize)]
-struct LoginForm {
-    username: String,
-}
+// #[derive(serde::Deserialize)]
+// struct LoginForm {
+//     username: String,
+// }
 
-#[handler]
-async fn login(session: &Session, Form(form): Form<LoginForm>) -> Result<Html<String>> {
-    session.set("username", form.username.clone());
-    let content = SessionPartialTemplate {
-        username: form.username,
-    }
-    .render_once()
-    .map_err(poem::error::InternalServerError)?;
-    Ok(Html(content))
-}
+// #[handler]
+// async fn login(session: &Session, Form(form): Form<LoginForm>) -> Result<Html<String>> {
+//     session.set("username", form.username.clone());
+//     let content = SessionPartialTemplate {
+//         username: form.username,
+//     }
+//     .render_once()
+//     .map_err(poem::error::InternalServerError)?;
+//     Ok(Html(content))
+// }
 
 #[handler]
 async fn logout(session: &Session) -> Result<Html<String>> {
@@ -353,12 +340,17 @@ async fn main() -> anyhow::Result<()> {
 
     let app = Route::new()
         .at("/", get(index))
-        .at("/login", post(login))
         .at("/logout", post(logout))
         .at("/form", get(form_get).post(form_post))
         .at("/upload", get(upload_get).post(upload_post))
         .at("/events", get(events_page))
         .at("/sse", get(sse_stream))
+        .at("/login", get(login::login_page).post(login::login_post))
+        .at("/signup", get(signup::signup_page).post(signup::signup_post))
+        .at("/signup/success", get(signup_success::signup_success))
+        .at("/search", get(search::search_page))
+        .at("/search/results", post(search::search_results))
+        .at("/api/analyze-image", post(llm::analyze_image))
         .nest("/static", EmbeddedFilesEndpoint::<StaticFiles>::new())
         .with(Csrf::new())
         .with(ServerSession::new(

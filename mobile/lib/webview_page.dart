@@ -19,7 +19,7 @@ class _WebViewPageState extends State<WebViewPage> {
 
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadRequest(Uri.parse(baseUrl));
+      ..loadRequest(Uri.parse('$baseUrl/signup'));
   }
 
   @override
