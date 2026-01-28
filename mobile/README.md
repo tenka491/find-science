@@ -88,3 +88,80 @@ const String baseUrl = "http://localhost:3000";
 * Confirm Rust server is running
 * Confirm URL is reachable in Safari/Chrome
 * Make sure you are using `localhost` (not `127.0.0.1` or LAN IP)
+
+Yep — this is a **README-worthy, copy-pasteable** set. No fluff.
+
+---
+
+## Start the iOS Simulator from the command line (macOS)
+
+### 1. List available simulators
+
+```bash
+xcrun simctl list devices
+```
+
+You’ll see output like:
+
+```
+iPhone 16e (F3A1E2D4-...)
+iPhone 15 Pro (A9B8C7D6-...)
+```
+
+---
+
+### 2. Boot a specific simulator
+
+Using the **name**:
+
+```bash
+xcrun simctl boot "iPhone 16e"
+```
+---
+
+### 3. Open the Simulator app
+
+```bash
+open -a Simulator
+```
+
+---
+
+## One-liner (boot + open)
+
+This is my favorite for READMEs:
+
+```bash
+xcrun simctl boot "iPhone 16e" || true && open -a Simulator
+```
+
+(`|| true` prevents failure if it’s already running)
+
+---
+
+## Optional: Boot the *default* simulator
+
+```bash
+xcrun simctl boot booted || open -a Simulator
+```
+
+---
+
+### Start iOS Simulator (CLI)
+
+List devices:
+```bash
+xcrun simctl list devices
+````
+
+Boot a simulator:
+
+```bash
+xcrun simctl boot "iPhone 16e"
+```
+
+Open Simulator UI:
+
+```bash
+open -a Simulator
+```
