@@ -4,7 +4,7 @@
 // [ ] QUery - fake results
 use poem::{
     handler,
-    web::{Form, Html},
+    web::{ CsrfToken, Form, Html},
     Result,
 };
 use sailfish::TemplateOnce;
@@ -19,7 +19,9 @@ struct SearchForm {
 
 #[derive(TemplateOnce)]
 #[template(path = "search.stpl.html")]
-struct SearchPageTemplate;
+struct SearchPageTemplate {
+    csrf_token: String,
+}
 
 #[derive(TemplateOnce)]
 #[template(path = "search_results.stpl.html")]
@@ -29,8 +31,10 @@ struct SearchResultsTemplate {
 }
 
 #[handler]
-pub async fn search_page() -> Result<Html<String>> {
-    render_with_layout("Search", SearchPageTemplate {})
+pub async fn search_page(token: &CsrfToken) -> Result<Html<String>> {
+    render_with_layout("Search", SearchPageTemplate {
+        csrf_token: token.0.clone(),
+    })
 }
 
 #[handler]
