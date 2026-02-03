@@ -7,6 +7,7 @@
       hx-swap="innerHTML"
       class="flex gap-2"
     >
+      <input type="hidden" name="csrf_token" value="<%= self.csrf_token %>">
       <input
         name="query"
         type="text"
