@@ -50,5 +50,7 @@
 			<key>NSAllowsArbitraryLoads</key>
 			<true/>
 		</dict>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>We would like to use your location to better identify programs in your area.</string>
 </dict>
 </plist>
