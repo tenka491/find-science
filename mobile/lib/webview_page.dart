@@ -1,6 +1,10 @@
+import 'dart:io';
+
+import 'package:acme_science/validation_image_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:acme_science/widgets/app_bar_with_logo.dart';
+import 'package:image_picker/image_picker.dart';
 import 'config.dart';
 import 'permissions_gate.dart';
 
@@ -13,6 +17,8 @@ class WebViewPage extends StatefulWidget {
 
 class _WebViewPageState extends State<WebViewPage> {
   late final WebViewController _controller;
+  final ImagePicker _picker = ImagePicker();
+  bool _hasPermissions = false;
   bool _permissionsRequested = false;
 
   @override
@@ -71,8 +77,29 @@ class _WebViewPageState extends State<WebViewPage> {
       debugPrint('🚫 Permissions not granted');
       return;
     }
+    if (ok) {
+      setState(() {
+        _hasPermissions = true;
+      });
+    }
+  }
 
-    _permissionsRequested = true;
+  Future<void> _openCamera() async {
+    final source = Platform.isIOS && !Platform.isAndroid
+        ? ImageSource
+              .gallery // simulator fallback for now
+        : ImageSource.camera;
+
+    final XFile? photo = await _picker.pickImage(source: source);
+    if (photo == null) return;
+
+    final bytes = await photo.readAsBytes();
+    if (!mounted) return;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => ValidateImageScreen(imageBytes: bytes)),
+    );
   }
 
   @override
@@ -95,7 +122,20 @@ class _WebViewPageState extends State<WebViewPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBarWithLogo(title: 'Acme Science'),
-      body: WebViewWidget(controller: _controller),
+      body: Stack(
+        children: [
+          WebViewWidget(controller: _controller),
+          if (_hasPermissions) // or better: a bool like _hasPermissions
+            Positioned(
+              bottom: 24,
+              // right: 24,
+              child: FloatingActionButton(
+                onPressed: _openCamera,
+                child: const Icon(Icons.camera_alt),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
