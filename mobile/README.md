@@ -165,3 +165,6 @@ Open Simulator UI:
 ```bash
 open -a Simulator
 ```
+
+To bypass permissions stuff:
+`flutter run --dart-define=DEV_BYPASS_PERMISSIONS=true`
