@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+set -e
+
+CONTAINER_NAME="ollama-dev"
+MODEL="llava"
+
+echo "🔎 Checking for Docker..."
+
+if ! command -v docker &> /dev/null
+then
+    echo "❌ Docker is not installed."
+    exit 1
+fi
+
+echo "🐳 Starting Ollama container..."
+
+if [ "$(docker ps -aq -f name=$CONTAINER_NAME)" ]; then
+    docker start $CONTAINER_NAME > /dev/null
+else
+    docker run -d \
+        --name $CONTAINER_NAME \
+        -p 11434:11434 \
+        -v ollama-data:/root/.ollama \
+        ollama/ollama > /dev/null
+fi
+
+echo "⏳ Waiting for Ollama to boot..."
+
+until curl -s http://localhost:11434/api/tags > /dev/null; do
+    sleep 1
+done
+
+echo "📦 Checking model..."
+
+if ! docker exec $CONTAINER_NAME ollama list | grep -q "$MODEL"; then
+    echo "⬇️ Pulling model: $MODEL"
+    docker exec -it $CONTAINER_NAME ollama pull $MODEL
+fi
+
+echo ""
+echo "✅ Ollama ready"
+echo "Model: $MODEL"
+echo "Endpoint: http://localhost:11434"
+echo ""

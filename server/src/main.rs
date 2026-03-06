@@ -1,18 +1,18 @@
 mod routes;
 mod render;
 mod auth;
+mod services;
+mod utils;
 
-use std::sync::OnceLock;
-
+use std::sync::{ Arc, OnceLock };
 
 use poem::{
     EndpointExt, Route, Server,
     endpoint::EmbeddedFilesEndpoint,
     get,
     listener::TcpListener,
-    middleware::{Csrf, Tracing},
+    middleware::{ Csrf, Tracing },
     post,
-    
 };
 use sqlx::{Pool, Sqlite, SqlitePool};
 use tracing::info;
@@ -22,6 +22,8 @@ use routes::signup_success;
 use routes::login;
 use routes::search;
 use routes::llm;
+use crate::services::ai::{AiService};
+use crate::services::ai::ollama::OllamaClient;
 
 #[derive(rust_embed::RustEmbed)]
 #[folder = "static"]
@@ -35,10 +37,13 @@ pub fn db() -> &'static Pool<Sqlite> {
     DB_POOL.get().expect("database pool not initialized")
 }
 
-
-
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+   let ai_service: Arc<dyn AiService> = Arc::new(OllamaClient::new(
+        std::env::var("OLLAMA_URL").unwrap_or_else(|_| "http://localhost:11434".to_string()),
+        std::env::var("OLLAMA_MODEL").unwrap_or_else(|_| "llava".to_string()),
+    ));
+
     tracing_subscriber::fmt::init();
 
     let pool = SqlitePool::connect("sqlite:data.db").await?;
@@ -60,6 +65,7 @@ async fn main() -> anyhow::Result<()> {
         .at("/search/results", post(search::search_results))
         .at("/api/analyze-image", post(llm::analyze_image))
         .nest("/static", EmbeddedFilesEndpoint::<StaticFiles>::new())
+        .data(ai_service.clone())
         .with(Csrf::new())
         // .with(ServerSession::new(
         //     poem::session::CookieConfig::default(),
@@ -74,4 +80,21 @@ async fn main() -> anyhow::Result<()> {
         .await?;
 
     Ok(())
+}
+
+#[tokio::test]
+async fn test_ai_pipeline() {
+
+    use crate::services::ai::mock::MockAiService;
+    use crate::utils::image::encode_image;
+
+    let image_bytes = b"fake_image_data";
+
+    let base64 = encode_image(image_bytes);
+
+    let ai = MockAiService;
+
+    let tags = ai.generate_tags(&base64).await.unwrap();
+
+    assert_eq!(tags.len(), 3);
 }
