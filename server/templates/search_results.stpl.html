@@ -1,21 +1,25 @@
+<% for p in self.projects { %>
+
 <div class="bg-white shadow rounded-lg overflow-hidden hover:shadow-lg transition">
+
+  <img src="<%= p.image %>" class="w-full h-48 object-cover">
+
   <div class="p-4 space-y-2">
 
-    <h2 class="text-xl font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer">
-      <a href="{{ url }}">{{ title }}</a>
+    <h2 class="text-xl font-semibold text-indigo-600">
+      <%= p.title %>
     </h2>
 
-    <div class="flex text-sm text-gray-500 space-x-2">
-      <span class="uppercase font-medium bg-gray-100 px-2 py-1 rounded-full">{{ type }}</span>
-      <span class="bg-green-100 px-2 py-1 rounded-full text-green-800">{{ status }}</span>
-    </div>
+    <p class="text-sm text-gray-600">
+      <strong>Goal:</strong> <%= p.goal %>
+    </p>
 
-    <p class="text-gray-700 text-sm">{{ description }}</p>
-
-    <div class="text-xs text-gray-500 space-y-1">
-      <div><strong>Location:</strong> {{ location }}</div>
-      <div><strong>Dates:</strong> {{ dates }}</div>
-    </div>
+    <p class="text-sm text-gray-600">
+      <strong>Task:</strong> <%= p.task %>
+    </p>
 
   </div>
+
 </div>
+
+<% } %>

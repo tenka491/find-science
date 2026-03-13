@@ -36,10 +36,27 @@ struct OllamaResponse {
 #[async_trait]
 impl AiService for OllamaClient {
     async fn generate_tags(&self, image_base64: &str) -> Result<Vec<String>> {
+        let prompt = r#"
+            You are an image tagging system for scientific observations.
+
+            Return 3 concise search keywords describing the image.
+
+            Rules:
+            - lowercase
+            - comma separated
+            - no numbering
+            - no explanations
+            - prefer the most specific organism name possible
+            - if an animal species is visible, use the species name when possible
+            - avoid vague words like animal, creature, object
+
+            Example:
+            dog, puppy, beagle
+        "#;
 
         let req = OllamaRequest {
             model: self.model.clone(),
-            prompt: "Return 5 short tags describing this science image.".into(),
+            prompt: prompt.into(),
             images: vec![image_base64.to_string()],
             stream: false,
         };

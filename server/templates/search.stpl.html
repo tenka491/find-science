@@ -1,63 +1,40 @@
-<!-- Full page layout already applied -->
-<section id="search-section" class="mt-6 max-w-7xl mx-auto px-4">
-  <div class="bg-white shadow-md rounded-lg p-6 space-y-6">
-
-    <form id="search-form" hx-post="/search/results" hx-target="#results-container" hx-swap="innerHTML" class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <form id="search-form" hx-post="/search/results" hx-target="#results-container" hx-swap="innerHTML" class="">
 
       <!-- Keyword -->
-      <div class="lg:col-span-3">
-        <label for="keyword" class="block text-sm font-medium text-gray-700">Search Projects & Events</label>
-        <input type="text" id="keyword" name="keyword" placeholder="e.g. butterflies, space" 
-               class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-      </div>
+      <label for="keywords" class="block mb-4">
+        <span class="text-gray-700 font-medium">Search Projects & Events</span>
+        <input
+          value="mammals"
+          type="text" id="keyword" name="keywords"
+          placeholder="e.g. butterflies, space" 
+          class="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+      </label>
 
       <!-- Latitude & Longitude -->
-      <div>
-        <label for="latitude" class="block text-sm font-medium text-gray-700">Latitude</label>
-        <input type="number" id="latitude" name="latitude" step="any"
-               class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-      </div>
-      <div>
-        <label for="longitude" class="block text-sm font-medium text-gray-700">Longitude</label>
-        <input type="number" id="longitude" name="longitude" step="any"
-               class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-      </div>
+        <label for="latitude" class="block mb-4">
+          <span class="font-medium text-gray-700">Latitude</span>
 
-      <!-- Filters -->
-      <div class="lg:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
-        <div class="flex items-center space-x-2">
-          <input id="events" name="events" type="checkbox" checked class="h-4 w-4 text-indigo-600 border-gray-300 rounded"/>
-          <label for="events" class="text-sm text-gray-700">Events</label>
-        </div>
-        <div class="flex items-center space-x-2">
-          <input id="projects" name="projects" type="checkbox" checked class="h-4 w-4 text-indigo-600 border-gray-300 rounded"/>
-          <label for="projects" class="text-sm text-gray-700">Projects</label>
-        </div>
-        <div class="flex items-center space-x-2">
-          <input id="active" name="active" type="checkbox" checked class="h-4 w-4 text-indigo-600 border-gray-300 rounded"/>
-          <label for="active" class="text-sm text-gray-700">Active</label>
-        </div>
-        <div class="flex items-center space-x-2">
-          <input id="upcoming" name="upcoming" type="checkbox" class="h-4 w-4 text-indigo-600 border-gray-300 rounded"/>
-          <label for="upcoming" class="text-sm text-gray-700">Upcoming</label>
-        </div>
-      </div>
+          <input type="number" id="latitude" name="latitude" step="any"
+          class="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        </label>
+        <label for="longitude" class="block mb-4">
+          <span class="font-medium text-gray-700">Longitude</span>
+
+          <input type="number" id="longitude" name="longitude" step="any"
+          class="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        </label>
 
       <!-- Submit Button -->
-      <div class="lg:col-span-3 text-right mt-2">
         <button type="submit"
-                class="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition">
+                class="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
           Search
         </button>
-      </div>
 
     </form>
-  </div>
-</section>
 
 <!-- Results Section -->
-<section id="results-section" class="mt-6 max-w-7xl mx-auto px-4 space-y-4">
+<div id="results-section" class="mt-6 max-w-7xl mx-auto px-4 space-y-4">
   <div id="results-container">
     <!-- HTMX will populate results here -->
   </div>
-</section>
+</div>

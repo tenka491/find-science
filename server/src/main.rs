@@ -21,7 +21,6 @@ use routes::signup;
 use routes::signup_success;
 use routes::login;
 use routes::search;
-use routes::llm;
 use crate::services::ai::{AiService};
 use crate::services::ai::ollama::OllamaClient;
 
@@ -63,7 +62,7 @@ async fn main() -> anyhow::Result<()> {
         .at("/signup/success", get(signup_success::signup_success))
         .at("/search", get(search::search_page))
         .at("/search/results", post(search::search_results))
-        .at("/api/analyze-image", post(llm::analyze_image))
+        .at("/search/image", post(search::search_image))
         .nest("/static", EmbeddedFilesEndpoint::<StaticFiles>::new())
         .data(ai_service.clone())
         .with(Csrf::new())

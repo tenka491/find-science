@@ -1,129 +1,196 @@
 use poem::{
     handler,
-    web::{ Multipart, Data, Html, CsrfToken },
+    web::{CsrfToken, Data, Form, Html, Json, Multipart},
     Result,
 };
-use sailfish::TemplateOnce;
-use std::sync::Arc;
-use serde::Deserialize;
 use reqwest::Url;
+use sailfish::TemplateOnce;
+use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 
 use crate::render::render_with_layout;
 use crate::services::ai::AiService;
 use crate::utils::image::encode_image;
 
-#[derive(Deserialize)]
-struct SearchForm {
-    query: Option<String>,
+//
+// ===== Form Input =====
+//
+
+#[derive(Debug, Deserialize)]
+pub struct SearchForm {
+    pub keywords: Option<String>,
+    pub latitude: Option<String>,
+    pub longitude: Option<String>,
 }
+
+//
+// ===== API Response =====
+//
+
+#[derive(Debug, Deserialize)]
+pub struct ProjectsApiResponse {
+    pub entities: Vec<Project>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Project {
+    pub name: Option<String>,
+    pub link: Option<String>,
+    pub goal: Option<String>,
+    pub task: Option<String>,
+    pub image: Option<String>,
+}
+
+//
+// ===== UI Model =====
+//
+
+pub struct ProjectCard {
+    pub title: String,
+    pub link: String,
+    pub goal: String,
+    pub task: String,
+    pub image: String,
+}
+
+//
+// ===== Templates =====
+//
 
 #[derive(TemplateOnce)]
 #[template(path = "search.stpl.html")]
 struct SearchPageTemplate {
     csrf_token: String,
+    message: Option<String>,
 }
 
 #[derive(TemplateOnce)]
 #[template(path = "search_results.stpl.html")]
-struct SearchResultsTemplate {
-    query: String,
-    results: Vec<String>,
-    ai_tags: Vec<String>,
-    projects_url: String,
+struct SearchResultsTemplate<'a> {
+    projects: &'a [ProjectCard],
 }
+
+//
+// ===== Handlers =====
+//
 
 #[handler]
 pub async fn search_page(token: &CsrfToken) -> Result<Html<String>> {
-    render_with_layout("Search", SearchPageTemplate {
-        csrf_token: token.0.clone(),
-    })
+    render_with_layout(
+        "Search",
+        SearchPageTemplate {
+            csrf_token: token.0.clone(),
+            message: None,
+        },
+    )
 }
 
 #[handler]
-pub async fn search_results(
+pub async fn search_results(Form(form): Form<SearchForm>) -> Result<Html<String>> {
+    //
+    // Build query
+    //
+
+    let api_url = std::env::var("PROJECTS_API_URL")
+        .unwrap_or_else(|_| "https://api.acme-science.example/projects?format=json".to_string());
+
+    let mut url = Url::parse(&api_url).unwrap();
+
+    if let Some(lat) = &form.latitude {
+        if !lat.is_empty() {
+            url.query_pairs_mut().append_pair("lat", lat);
+        }
+    }
+
+    if let Some(lng) = &form.longitude {
+        if !lng.is_empty() {
+            url.query_pairs_mut().append_pair("lng", lng);
+        }
+    }
+
+    tracing::info!("Acme Science URL: {}", url);
+
+    //
+    // Call API
+    //
+
+    let resp = reqwest::Client::new()
+        .get(url)
+        .send()
+        .await
+        .map_err(poem::error::InternalServerError)?;
+
+    let data: ProjectsApiResponse = resp
+        .json()
+        .await
+        .map_err(poem::error::InternalServerError)?;
+
+    //
+    // Map API → UI model
+    //
+
+    let cards: Vec<ProjectCard> = data
+        .entities
+        .into_iter()
+        .map(|p| ProjectCard {
+            title: p.name.unwrap_or_else(|| "Untitled Project".into()),
+            link: p.link.unwrap_or_else(|| "#".into()),
+            goal: p.goal.unwrap_or_else(|| "No goal listed.".into()),
+            task: p.task.unwrap_or_else(|| "No task listed.".into()),
+            image: p.image.unwrap_or_else(|| "/static/placeholder.jpg".into()),
+        })
+        .collect();
+
+    //
+    // Render template
+    //
+
+    let body_html = SearchResultsTemplate { projects: &cards }
+        .render_once()
+        .map_err(poem::error::InternalServerError)?;
+
+    Ok(Html(body_html))
+}
+
+//
+// ===== Image Search =====
+//
+
+#[derive(Serialize)]
+struct ImageSearchResponse {
+    keywords: Vec<String>,
+    latitude: Option<f64>,
+    longitude: Option<f64>,
+}
+
+#[handler]
+pub async fn search_image(
     mut multipart: Multipart,
     ai_service: Data<&Arc<dyn AiService>>,
-    ) -> Result<Html<String>> {
-    // Initialize all form fields
-    let mut keywords = None;
+) -> Result<Json<ImageSearchResponse>> {
+    let mut image_bytes = None;
     let mut latitude = None;
     let mut longitude = None;
-    let mut events = None;
-    let mut projects = None;
-    let mut active = None;
-    let mut upcoming = None;
-    let mut image_bytes = None;
 
-    // Parse multipart fields
     while let Some(field) = multipart.next_field().await? {
-        let name = field.name().unwrap_or("").to_string();
-        tracing::info!("Received field: {}", name);
-
-        match name.as_str() {
-            "keywords" => keywords = Some(field.text().await?),
-            "latitude" => latitude = Some(field.text().await?),
-            "longitude" => longitude = Some(field.text().await?),
-            "events" => events = Some(field.text().await?),
-            "projects" => projects = Some(field.text().await?),
-            "active" => active = Some(field.text().await?),
-            "upcoming" => upcoming = Some(field.text().await?),
-            "image" => image_bytes = Some(field.bytes().await?.to_vec()),
+        match field.name() {
+            Some("image") => image_bytes = Some(field.bytes().await?.to_vec()),
+            Some("latitude") => latitude = field.text().await?.parse().ok(),
+            Some("longitude") => longitude = field.text().await?.parse().ok(),
             _ => {}
         }
     }
 
-    let mut final_keywords = keywords.clone().unwrap_or_default();
-    let mut ai_tags = vec![];
+    let image = image_bytes.ok_or_else(|| {
+        poem::Error::from_string("image is required", poem::http::StatusCode::BAD_REQUEST)
+    })?;
 
-    // If image is present, get AI tags
-    if let Some(bytes) = image_bytes {
-        let base64_img = encode_image(&bytes);
-        tracing::info!("base64_img: {}", base64_img);
-        let ai_tags = ai_service.generate_tags(&base64_img).await.unwrap_or_default();
-        if !ai_tags.is_empty() {
-            final_keywords = format!("{} {}", final_keywords, ai_tags.join(" "));
-        }
-    }
-    tracing::info!("ai tags: {:?}", ai_tags);
+    let image_base64 = encode_image(&image);
+    let keywords = ai_service.generate_tags(&image_base64).await?;
 
-    // Build Acme Science query parameters
-    let mut params = vec![];
-
-    if !final_keywords.is_empty() { params.push(("phrase", final_keywords.clone())); }
-    if let Some(lat) = latitude.clone() { params.push(("lat", lat)); }
-    if let Some(lng) = longitude.clone() { params.push(("lng", lng)); }
-    if let Some(e) = events.clone() { params.push(("activity", e)); }
-    if let Some(p) = projects.clone() { params.push(("topic", p)); }
-    if let Some(a) = active.clone() { params.push(("active", a)); }
-    if let Some(u) = upcoming.clone() { params.push(("upcoming", u)); }
-
-    // Get base URL from environment
-    let api_url = std::env::var("PROJECTS_API_URL").unwrap_or_else(|_| "https://api.acme-science.example/projects?format=json&key=YOUR_KEY".to_string());
-    let mut url = Url::parse(&api_url).unwrap();
-    url.query_pairs_mut().extend_pairs(params);
-
-    tracing::info!("Final Acme Science URL: {}", url);
-
-    // Send request to Acme Science
-    let client = reqwest::Client::new();
-    let resp = client.get(url.clone()).send().await.map_err(poem::error::InternalServerError)?;
-    let body = resp.text().await.map_err(poem::error::InternalServerError)?;
-
-    // Stub: parse JSON or just return placeholder results
-    let results = vec![
-        format!("Result 1 for '{}'", final_keywords),
-        format!("Result 2 for '{}'", final_keywords),
-        format!("Result 3 for '{}'", final_keywords),
-    ];
-    tracing::info!("resp: {}", body);
-    Ok(Html(
-        SearchResultsTemplate {
-            query: final_keywords,
-            results,
-            ai_tags,
-            projects_url: url.to_string(),
-        }
-        .render_once()
-        .map_err(poem::error::InternalServerError)?,
-    ))
+    Ok(Json(ImageSearchResponse {
+        keywords,
+        latitude,
+        longitude,
+    }))
 }
