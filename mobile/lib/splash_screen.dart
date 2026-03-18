@@ -1,3 +1,4 @@
+import 'package:acme_science/widgets/molecule_loader.dart';
 import 'package:flutter/material.dart';
 import 'theme.dart';
 import 'webview_page.dart';
@@ -41,7 +42,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  const CircularProgressIndicator(),
+                  MoleculeLoader(),
                 ],
               ),
             ),
