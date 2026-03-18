@@ -1,13 +1,8 @@
-// TODO: stub these
-// [x] form exists
-// [x] POST Handler exists -> redirect to signup success
-// [x] DB insert
-// [x] DB migration
 use poem::{
     Error, http::StatusCode,
     handler,
     Result,
-    web::{Html, CsrfToken, Form, Redirect, Data},
+    web::{Html, CsrfToken, CsrfVerifier, Form, Redirect, Data},
 };
 use sailfish::TemplateOnce;
 use serde::Deserialize;
@@ -30,6 +25,7 @@ pub struct SignUpData {
     zip: String,
     password: String,
     confirm_password: String,
+    csrf_token: String,
 }
 
 #[handler]
@@ -46,15 +42,22 @@ pub async fn signup_page(token: &CsrfToken) -> Result<Html<String>> {
 #[handler]
 pub async fn signup_post(
     Data(pool): Data<&SqlitePool>,
-    token: &CsrfToken,
+    verifier: &CsrfVerifier,
     Form(data): Form<SignUpData>,
 ) -> Result<Redirect> {
-    // 1️⃣ Validate input (business logic errors → BadRequest)
+    if !verifier.is_valid(&data.csrf_token) {
+        return Err(Error::from_string(
+            "Invalid CSRF token",
+            StatusCode::FORBIDDEN,
+        ));
+    }
+
+    // Validate input (business logic errors → BadRequest)
     if data.password != data.confirm_password {
         return Ok(Redirect::see_other("/signup?error=password_mismatch"));
     }
 
-    // 2️⃣ Hash password (internal error → 500)
+    // Hash password (internal error → 500)
     let hashed = hash_password(&data.password)
         .map_err(|e| {
             tracing::error!("password hash failed: {:?}", e);
@@ -64,7 +67,7 @@ pub async fn signup_post(
             )
         })?;
 
-    // 3️⃣ Insert user (internal error → 500)
+    // Insert user (internal error → 500)
     sqlx::query!(
         r#"
         INSERT INTO users (username, email, zip, password_hash)
@@ -85,6 +88,6 @@ pub async fn signup_post(
         )
     })?;
 
-    // 4️⃣ Success redirect
+    // Success redirect
     Ok(Redirect::see_other("/signup/success"))
 }

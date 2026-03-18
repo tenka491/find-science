@@ -98,6 +98,10 @@ sqlx migrate run
 
 ```bash
 cargo run
+
+or 
+
+cargo watch -x run
 ```
 
 ---

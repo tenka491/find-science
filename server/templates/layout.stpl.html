@@ -5,19 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= self.title %></title>
     <link rel="stylesheet" href="/static/style.css">
+    <!-- <link href="https://cdn.tailwindcss.com" rel="stylesheet"> -->
+    <link rel="stylesheet" href="/static/theme-override.css">
     <script src="/static/htmx.min.js"></script>
     <script src="/static/htmx-ext-sse.js"></script>
 </head>
-<body class="bg-gray-100 text-gray-800 min-h-screen">
-    <nav class="bg-gray-800 px-6 py-4">
+<body class="bg-primary-light text-gray-800 min-h-screen">
+    <!-- <nav class="bg-gray-800 px-6 py-4">
         <div class="max-w-4xl mx-auto flex gap-4">
             <a href="/" class="text-white hover:bg-gray-700 px-4 py-2 rounded transition-colors">Home</a>
             <a href="/signup" class="text-white hover:bg-gray-700 px-4 py-2 rounded transition-colors">Sign Up</a>
             <a href="/login" class="text-white hover:bg-gray-700 px-4 py-2 rounded transition-colors">Log In</a>
             <a href="/search" class="text-white hover:bg-gray-700 px-4 py-2 rounded transition-colors">search</a>
         </div>
-    </nav>
-    <main class="max-w-4xl mx-auto mt-6 p-8 bg-white rounded-lg shadow-md">
+    </nav> -->
+    <main>
         <%+ self.content %>
     </main>
 </body>

@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+docker stop ollama-dev
+echo "🛑 Ollama stopped"

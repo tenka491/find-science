@@ -1,42 +1,38 @@
-<h1 class="text-3xl font-bold text-gray-900 mb-6">Sign Up</h1>
+<h1>Sign Up</h1>
 
-<p class="text-gray-600 mb-6">Already have an account? <a href="/login">Log In here</a>.</p>
+<p class="intro">Already have an account? <a href="/login" class="link">Log In here</a>.</p>
 
-<form method="POST" action="/signup" class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+<form method="POST" action="/signup">
     <input type="hidden" name="csrf_token" value="<%= self.csrf_token %>">
-    <label class="block mb-4">
-        <span class="text-gray-700 font-medium">Username:</span>
-        <input type="text" name="username" required
-            class="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+    <label>
+        <span class="label-text">Username:</span>
+        <input type="text" name="username" required>
     </label>
-    <label class="block mb-4">
-        <span class="text-gray-700 font-medium">Email Address:</span>
-        <input type="email" name="email" required
-            class="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+    <label>
+        <span class="label-text">Email Address:</span>
+        <input type="email" name="email" required>
     </label>
-    <label class="block mb-4">
-        <span class="text-gray-700 font-medium">Zip/Postal Code:</span>
-        <input type="text" name="zip" required
-            class="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+    <label>
+        <span class="label-text">Zip/Postal Code:</span>
+        <input type="text" name="zip" required>
     </label>
-    <label class="block mb-4">
-        <span class="text-gray-700 font-medium">Password:</span>
-        <input type="password" name="password" required
-            class="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+    <label>
+        <span class="label-text">Password:</span>
+        <input type="password" name="password" required>
     </label>
-    <label class="block mb-4">
-        <span class="text-gray-700 font-medium">Confirm Password:</span>
-        <input type="password" name="confirm_password" required
-            class="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+    <label>
+        <span class="label-text">Confirm Password:</span>
+        <input type="password" name="confirm_password" required>
     </label>
 
     <button type="reset"
-        class="px-6 py-2 font-medium rounded-lg hover:bg-blue-700 transition-colors">
+        class="button-secondary mr-1">
         Cancel
     </button>
 
     <button type="submit"
-        class="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
+        class="button-primary">
         Sign Up
     </button>
+    <div id="messages" class="mt-4"></div>
 </form>
