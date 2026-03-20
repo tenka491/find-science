@@ -64,6 +64,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/
+    - assets/icons/
     # - assets/images/Social__white__transparent-bg.png
     # - assets/images/Social__standard__transparent-bg.png
     # - assets/images/Standard__tagline-dark.png

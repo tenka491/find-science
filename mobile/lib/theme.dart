@@ -25,6 +25,10 @@ class AppColors {
   static const Color alert = Color(0xFFB92D0E);
   static const Color text = black;
   static const Color background = primaryLight;
+
+  static const Color moleculeDot1 = Color(0xFFf59080);
+  static const Color moleculeDot2 = Color(0xFFee4423);
+  static const Color moleculeDot3 = Color(0xFF7dc6da);
 }
 
 final ThemeData appTheme = ThemeData(

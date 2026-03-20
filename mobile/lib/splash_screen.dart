@@ -15,7 +15,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
 
-    Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(const Duration(seconds: 3), () {
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
@@ -38,10 +38,8 @@ class _SplashScreenState extends State<SplashScreen> {
                 children: [
                   Image.asset(
                     'assets/images/Social__standard__transparent-bg.png',
-                    width: 180,
+                    width: 280,
                   ),
-                  const SizedBox(height: 24),
-
                   MoleculeLoader(),
                 ],
               ),

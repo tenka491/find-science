@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../theme.dart';
 
 class MoleculeLoader extends StatefulWidget {
   const MoleculeLoader({super.key});
@@ -57,8 +58,8 @@ class _MoleculeLoaderState extends State<MoleculeLoader>
           );
         },
         child: Container(
-          width: 12,
-          height: 12,
+          width: 60,
+          height: 60,
           decoration: BoxDecoration(
             color: color,
             shape: BoxShape.circle,
@@ -71,38 +72,37 @@ class _MoleculeLoaderState extends State<MoleculeLoader>
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 80,
-      height: 50,
+      width: 285,
+      height: 150,
       child: Stack(
+        clipBehavior: Clip.none, 
         children: [
-
-          /// Base SVG (lines) TODO: not loading the SVG
           SvgPicture.asset(
             "assets/icons/molecule.svg",
-            width: 80,
+            width: 285,
           ),
 
           /// Pulsing dots aligned over SVG circles
-
+          /// Middle
           pulseDot(
             delay: 0.0,
-            color: Colors.blue,
-            left: 30,
-            top: 28,
+            color: AppColors.moleculeDot2,
+            left: 133,
+            top: 85,
           ),
-
+          // last
           pulseDot(
             delay: 0.2,
-            color: Colors.pink,
-            left: 58,
-            top: 4,
+            color: AppColors.moleculeDot3,
+            left: 226,
+            top: 0,
           ),
-
+          // first
           pulseDot(
             delay: 0.4,
-            color: Colors.red,
-            left: 4,
-            top: 28,
+            color: AppColors.moleculeDot1,
+            left: 0,
+            top: 85,
           ),
         ],
       ),
