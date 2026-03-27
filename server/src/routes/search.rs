@@ -51,6 +51,7 @@ pub struct ProjectCard {
     pub goal: String,
     pub task: String,
     pub image: String,
+    // pub full_link: String,
 }
 
 //
@@ -93,7 +94,7 @@ pub async fn search_results(Form(form): Form<SearchForm>) -> Result<Html<String>
 
     let api_url = std::env::var("PROJECTS_API_URL")
         .unwrap_or_else(|_| "https://api.acme-science.example/projects?format=json".to_string());
-
+println!("API URL: {:?}", api_url);
     let mut url = Url::parse(&api_url).unwrap();
 
     if let Some(lat) = &form.latitude {
@@ -128,16 +129,28 @@ pub async fn search_results(Form(form): Form<SearchForm>) -> Result<Html<String>
     //
     // Map API → UI model
     //
-
+    let base_url = std::env::var("PROJECTS_BASE_URL")
+            .unwrap_or_else(|_| "http://localhost:3000".to_string());
+println!("BASE URL: {:?}", base_url);
     let cards: Vec<ProjectCard> = data
         .entities
         .into_iter()
         .map(|p| ProjectCard {
             title: p.name.unwrap_or_else(|| "Untitled Project".into()),
-            link: p.link.unwrap_or_else(|| "#".into()),
+            // link: p.link.unwrap_or_else(|| "#".into()),
             goal: p.goal.unwrap_or_else(|| "No goal listed.".into()),
             task: p.task.unwrap_or_else(|| "No task listed.".into()),
             image: p.image.unwrap_or_else(|| "/static/placeholder.jpg".into()),
+            link: match p.link {
+                Some(ref link) => {
+                    format!(
+                        "{}/{}",
+                        base_url.trim_end_matches('/'),
+                        link.trim_start_matches('/')
+                    )
+                }
+                None => "#".to_string(),
+            }
         })
         .collect();
 

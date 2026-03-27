@@ -38,7 +38,8 @@ pub fn db() -> &'static Pool<Sqlite> {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-   let ai_service: Arc<dyn AiService> = Arc::new(OllamaClient::new(
+    dotenvy::dotenv().ok();
+    let ai_service: Arc<dyn AiService> = Arc::new(OllamaClient::new(
         std::env::var("OLLAMA_URL").unwrap_or_else(|_| "http://localhost:11434".to_string()),
         std::env::var("OLLAMA_MODEL").unwrap_or_else(|_| "llava".to_string()),
     ));

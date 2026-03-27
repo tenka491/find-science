@@ -2090,6 +2090,7 @@ dependencies = [
  "async-stream",
  "async-trait",
  "base64",
+ "dotenvy",
  "poem",
  "rand_core 0.6.4",
  "reqwest",
