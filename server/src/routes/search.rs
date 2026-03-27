@@ -88,13 +88,11 @@ pub async fn search_page(token: &CsrfToken) -> Result<Html<String>> {
 
 #[handler]
 pub async fn search_results(Form(form): Form<SearchForm>) -> Result<Html<String>> {
-    //
     // Build query
-    //
 
     let api_url = std::env::var("PROJECTS_API_URL")
         .unwrap_or_else(|_| "https://api.acme-science.example/projects?format=json".to_string());
-println!("API URL: {:?}", api_url);
+
     let mut url = Url::parse(&api_url).unwrap();
 
     if let Some(lat) = &form.latitude {
@@ -108,12 +106,16 @@ println!("API URL: {:?}", api_url);
             url.query_pairs_mut().append_pair("lng", lng);
         }
     }
+   
+    if let Some(keywords) = &form.keywords {
+        if !keywords.is_empty() {
+            url.query_pairs_mut().append_pair("q", keywords);
+        }
+    }
 
     tracing::info!("Acme Science URL: {}", url);
 
-    //
     // Call API
-    //
 
     let resp = reqwest::Client::new()
         .get(url)
@@ -131,7 +133,7 @@ println!("API URL: {:?}", api_url);
     //
     let base_url = std::env::var("PROJECTS_BASE_URL")
             .unwrap_or_else(|_| "http://localhost:3000".to_string());
-println!("BASE URL: {:?}", base_url);
+
     let cards: Vec<ProjectCard> = data
         .entities
         .into_iter()
