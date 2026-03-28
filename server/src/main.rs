@@ -62,7 +62,7 @@ async fn main() -> anyhow::Result<()> {
         .at("/signup", get(signup::signup_page).post(signup::signup_post).data(pool.clone()))
         .at("/signup/success", get(signup_success::signup_success))
         .at("/search", get(search::search_page))
-        .at("/search/results", post(search::search_results))
+        .at("/search/results", get(search::search_results))
         .at("/search/image", post(search::search_image))
         .nest("/static", EmbeddedFilesEndpoint::<StaticFiles>::new())
         .data(ai_service.clone())

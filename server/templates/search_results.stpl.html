@@ -25,3 +25,17 @@
 </div>
 
 <% } %>
+<div id="load-more-container" hx-swap-oob="true">
+<% if let Some(next) = self.next { %>
+    <button
+      hx-get="/search/results"
+      hx-include="#search-form"
+      hx-vals='{"page": <%= next %>}'
+      hx-target="#results-container"
+      hx-swap="beforeend"
+      class="mt-4 px-4 py-2 border rounded"
+    >
+      Load More
+    </button>
+    <% } %>
+</div>
