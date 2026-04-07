@@ -12,9 +12,14 @@ class PermissionsGate {
 
     // 🚧 DEV-ONLY SIMULATOR BYPASS
     if (kDevBypassPermissions) {
-      debugPrint(
-        '🧪 DEV BYPASS ENABLED — skipping camera & location permissions',
-      );
+      debugPrint('🧪 DEV BYPASS ENABLED — skipping camera, but requesting location');
+  
+      // Still request location even in dev mode
+      final locationStatus = await Permission.locationWhenInUse.status;
+      if (locationStatus.isDenied) {
+        await Permission.locationWhenInUse.request();
+      }
+      
       return true;
     }
 

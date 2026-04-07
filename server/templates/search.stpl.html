@@ -36,3 +36,11 @@
     <!-- button lands here -->
   </div>
 </div>
+
+<script>
+  window.populateSearchResults = function(data) {
+    // document.getElementById('keyword').value = data.keywords.join(', ');
+    document.getElementById('keyword').value = data.keywords[0];
+    document.querySelector('button[type="submit"]').click();
+  };
+</script>

@@ -205,6 +205,10 @@ pub async fn search_image(
 
     let image_base64 = encode_image(&image);
     let keywords = ai_service.generate_tags(&image_base64).await?;
+    // let keywords = vec!["dogs", "mammals", "wolves"]
+    //     .into_iter()
+    //     .map(|s| s.to_string())
+    //     .collect();
 
     Ok(Json(ImageSearchResponse {
         keywords,
