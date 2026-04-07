@@ -60,6 +60,9 @@
 
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app needs photo library access to select photos.</string>
-
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>We need your location to find nearby science projects</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>We need your location to find nearby science projects</string>
 </dict>
 </plist>

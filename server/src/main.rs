@@ -38,7 +38,8 @@ pub fn db() -> &'static Pool<Sqlite> {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-   let ai_service: Arc<dyn AiService> = Arc::new(OllamaClient::new(
+    dotenvy::dotenv().ok();
+    let ai_service: Arc<dyn AiService> = Arc::new(OllamaClient::new(
         std::env::var("OLLAMA_URL").unwrap_or_else(|_| "http://localhost:11434".to_string()),
         std::env::var("OLLAMA_MODEL").unwrap_or_else(|_| "llava".to_string()),
     ));
@@ -61,7 +62,7 @@ async fn main() -> anyhow::Result<()> {
         .at("/signup", get(signup::signup_page).post(signup::signup_post).data(pool.clone()))
         .at("/signup/success", get(signup_success::signup_success))
         .at("/search", get(search::search_page))
-        .at("/search/results", post(search::search_results))
+        .at("/search/results", get(search::search_results))
         .at("/search/image", post(search::search_image))
         .nest("/static", EmbeddedFilesEndpoint::<StaticFiles>::new())
         .data(ai_service.clone())

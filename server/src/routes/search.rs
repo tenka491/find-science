@@ -1,6 +1,6 @@
 use poem::{
     handler,
-    web::{CsrfToken, Data, Form, Html, Json, Multipart},
+    web::{CsrfToken, Data, Html, Json, Multipart, Query},
     Result,
 };
 use reqwest::Url;
@@ -12,23 +12,22 @@ use crate::render::render_with_layout;
 use crate::services::ai::AiService;
 use crate::utils::image::encode_image;
 
-//
 // ===== Form Input =====
-//
 
 #[derive(Debug, Deserialize)]
 pub struct SearchForm {
     pub keywords: Option<String>,
     pub latitude: Option<String>,
     pub longitude: Option<String>,
+    pub page: Option<usize>, // for pagination
 }
 
-//
 // ===== API Response =====
-//
 
 #[derive(Debug, Deserialize)]
 pub struct ProjectsApiResponse {
+    pub total: Option<usize>,
+    pub page: Option<usize>,
     pub entities: Vec<Project>,
 }
 
@@ -41,9 +40,7 @@ pub struct Project {
     pub image: Option<String>,
 }
 
-//
 // ===== UI Model =====
-//
 
 pub struct ProjectCard {
     pub title: String,
@@ -53,9 +50,7 @@ pub struct ProjectCard {
     pub image: String,
 }
 
-//
 // ===== Templates =====
-//
 
 #[derive(TemplateOnce)]
 #[template(path = "search.stpl.html")]
@@ -68,11 +63,10 @@ struct SearchPageTemplate {
 #[template(path = "search_results.stpl.html")]
 struct SearchResultsTemplate<'a> {
     projects: &'a [ProjectCard],
+    next: Option<usize>
 }
 
-//
 // ===== Handlers =====
-//
 
 #[handler]
 pub async fn search_page(token: &CsrfToken) -> Result<Html<String>> {
@@ -86,16 +80,15 @@ pub async fn search_page(token: &CsrfToken) -> Result<Html<String>> {
 }
 
 #[handler]
-pub async fn search_results(Form(form): Form<SearchForm>) -> Result<Html<String>> {
-    //
-    // Build query
-    //
-
+pub async fn search_results(Query(form): Query<SearchForm>) -> Result<Html<String>> {
+    let page = form.page.unwrap_or(1);
+    
     let api_url = std::env::var("PROJECTS_API_URL")
-        .unwrap_or_else(|_| "https://api.acme-science.example/projects?format=json".to_string());
-
+    .unwrap_or_else(|_| "https://api.acme-science.example/projects?format=json".to_string());
+    
     let mut url = Url::parse(&api_url).unwrap();
-
+    
+    // Build query
     if let Some(lat) = &form.latitude {
         if !lat.is_empty() {
             url.query_pairs_mut().append_pair("lat", lat);
@@ -107,13 +100,19 @@ pub async fn search_results(Form(form): Form<SearchForm>) -> Result<Html<String>
             url.query_pairs_mut().append_pair("lng", lng);
         }
     }
+   
+    if let Some(keywords) = &form.keywords {
+        if !keywords.is_empty() {
+            url.query_pairs_mut().append_pair("q", keywords);
+        }
+    }
+    
+    url.query_pairs_mut()
+        .append_pair("page", &page.to_string());
+    
+        tracing::info!("Acme Science URL: {}", url);
 
-    tracing::info!("Acme Science URL: {}", url);
-
-    //
     // Call API
-    //
-
     let resp = reqwest::Client::new()
         .get(url)
         .send()
@@ -124,28 +123,47 @@ pub async fn search_results(Form(form): Form<SearchForm>) -> Result<Html<String>
         .json()
         .await
         .map_err(poem::error::InternalServerError)?;
+    
+    // Set Page #
+    let total = data.total.unwrap_or(0);
+    let page = data.page.unwrap_or(1);
+    let per_page = data.entities.len();
+    let per_page_max = 10; // whatever the API's fixed page size is
 
-    //
+    let fetched_so_far = (page - 1) * per_page_max + per_page;
+    let has_more = fetched_so_far < total;
+
+    let next_page = if has_more { Some(page + 1) } else { None };
+    
     // Map API → UI model
-    //
+    let base_url = std::env::var("PROJECTS_BASE_URL")
+            .unwrap_or_else(|_| "http://localhost:3000".to_string());
 
     let cards: Vec<ProjectCard> = data
         .entities
         .into_iter()
         .map(|p| ProjectCard {
             title: p.name.unwrap_or_else(|| "Untitled Project".into()),
-            link: p.link.unwrap_or_else(|| "#".into()),
+            // link: p.link.unwrap_or_else(|| "#".into()),
             goal: p.goal.unwrap_or_else(|| "No goal listed.".into()),
             task: p.task.unwrap_or_else(|| "No task listed.".into()),
             image: p.image.unwrap_or_else(|| "/static/placeholder.jpg".into()),
+            link: match p.link {
+                Some(ref link) => {
+                    format!(
+                        "{}/{}",
+                        base_url.trim_end_matches('/'),
+                        link.trim_start_matches('/')
+                    )
+                }
+                None => "#".to_string(),
+            }
         })
         .collect();
 
-    //
     // Render template
-    //
 
-    let body_html = SearchResultsTemplate { projects: &cards }
+    let body_html = SearchResultsTemplate { projects: &cards, next: next_page }
         .render_once()
         .map_err(poem::error::InternalServerError)?;
 
@@ -187,6 +205,10 @@ pub async fn search_image(
 
     let image_base64 = encode_image(&image);
     let keywords = ai_service.generate_tags(&image_base64).await?;
+    // let keywords = vec!["dogs", "mammals", "wolves"]
+    //     .into_iter()
+    //     .map(|s| s.to_string())
+    //     .collect();
 
     Ok(Json(ImageSearchResponse {
         keywords,

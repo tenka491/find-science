@@ -1,10 +1,10 @@
-  <form id="search-form" hx-post="/search/results" hx-target="#results-container" hx-swap="innerHTML">
+  <form id="search-form" hx-get="/search/results" hx-target="#results-container" hx-swap="innerHTML">
 
     <!-- Keyword -->
     <label for="keywords">
       <span class="label-text">Search Projects & Events</span>
       <input
-        value="mammals"
+        value=""
         type="text" id="keyword" name="keywords"
         placeholder="e.g. butterflies, space" >
     </label>
@@ -32,4 +32,15 @@
   <div id="results-container">
     <!-- HTMX will populate results here -->
   </div>
+  <div id="load-more-container">
+    <!-- button lands here -->
+  </div>
 </div>
+
+<script>
+  window.populateSearchResults = function(data) {
+    // document.getElementById('keyword').value = data.keywords.join(', ');
+    document.getElementById('keyword').value = data.keywords[0];
+    document.querySelector('button[type="submit"]').click();
+  };
+</script>

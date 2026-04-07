@@ -10,9 +10,12 @@ class AppBarWithLogo extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: AppColors.background,
-      elevation: 0,
-      centerTitle: centerTitle,
+      backgroundColor: AppColors.white,
+        iconTheme: IconThemeData(color: AppColors.primaryAction), // colors the back chevron
+      elevation: 4,
+      surfaceTintColor: Colors.transparent,
+      shadowColor: AppColors.neutralDark.withValues(alpha: .2),
+      centerTitle: false,
       title: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

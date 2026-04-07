@@ -1,7 +1,9 @@
 import 'dart:io';
 
+import 'package:acme_science/theme.dart';
 import 'package:acme_science/validation_image_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:acme_science/widgets/app_bar_with_logo.dart';
 import 'package:image_picker/image_picker.dart';
@@ -84,6 +86,19 @@ class _WebViewPageState extends State<WebViewPage> {
     }
   }
 
+  Future<Position?> _getCurrentLocation() async {
+    try {
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 10),
+      );
+      return position;
+    } catch (e) {
+      debugPrint('Error getting location: $e');
+      return null;
+    }
+  }
+
   Future<void> _openCamera() async {
     final source = Platform.isIOS && !Platform.isAndroid
         ? ImageSource
@@ -96,9 +111,18 @@ class _WebViewPageState extends State<WebViewPage> {
     final bytes = await photo.readAsBytes();
     if (!mounted) return;
 
+    final position = await _getCurrentLocation();
+
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => ValidateImageScreen(imageBytes: bytes)),
+      MaterialPageRoute(
+        builder: (_) => ValidateImageScreen(
+          imageBytes: bytes,
+          webViewController: _controller,
+          latitude: position?.latitude,
+          longitude: position?.longitude,
+        ),
+      ),
     );
   }
 
@@ -125,15 +149,47 @@ class _WebViewPageState extends State<WebViewPage> {
       body: Stack(
         children: [
           WebViewWidget(controller: _controller),
-          if (_hasPermissions) // or better: a bool like _hasPermissions
+          if (_hasPermissions) ...[
             Positioned(
-              bottom: 24,
-              // right: 24,
-              child: FloatingActionButton(
-                onPressed: _openCamera,
-                child: const Icon(Icons.camera_alt),
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                height: 50,
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 8,
+                      offset: const Offset(0, -4), // shadow goes upward
+                    ),
+                  ],
+                ),
               ),
             ),
+            Positioned(
+              bottom: 20,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: SizedBox(
+                  width: 73,
+                  height: 73,
+                  child: FloatingActionButton(
+                    onPressed: _openCamera,
+                    shape: const CircleBorder(
+                      side: BorderSide(
+                        color: Colors.white,
+                        width: 2,
+                      ),
+                    ),
+                    child: const Icon(Icons.camera_alt_outlined, size: 40),
+                    ),
+                  ),
+              ),
+            ),
+          ],
         ],
       ),
     );

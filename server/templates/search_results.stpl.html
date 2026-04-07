@@ -1,25 +1,41 @@
 <% for p in self.projects { %>
 
 <div class="mb-4 bg-gray-50 rounded-lg border border-neutral-light overflow-hidden hover:shadow-lg transition">
+  <a href="<%= p.link %>">
 
-  <img src="<%= p.image %>" class="w-full h-48 object-cover">
+    <img src="<%= p.image %>" class="w-full h-48 object-cover">
 
-  <div class="p-4 space-y-2">
+    <div class="p-4 space-y-2">
 
-    <h2 class="text-xl font-semibold text-primary">
-      <%= p.title %>
-    </h2>
+      <h2 class="text-xl font-semibold text-primary">
+        <%= p.title %>
+      </h2>
 
-    <p class="text-sm">
-      <strong class="text-gray-600">Goal:</strong> <%= p.goal %>
-    </p>
+      <p class="text-sm">
+        <strong class="text-gray-600">Goal:</strong> <%= p.goal %>
+      </p>
 
-    <p class="text-sm">
-      <strong class="text-gray-600">Task:</strong> <%= p.task %>
-    </p>
+      <p class="text-sm">
+        <strong class="text-gray-600">Task:</strong> <%= p.task %>
+      </p>
 
-  </div>
+    </div>
+  </a>
 
 </div>
 
 <% } %>
+<div id="load-more-container" hx-swap-oob="true">
+<% if let Some(next) = self.next { %>
+    <button
+      hx-get="/search/results"
+      hx-include="#search-form"
+      hx-vals='{"page": <%= next %>}'
+      hx-target="#results-container"
+      hx-swap="beforeend"
+      class="mt-4 px-4 py-2 border rounded"
+    >
+      Load More
+    </button>
+    <% } %>
+</div>
