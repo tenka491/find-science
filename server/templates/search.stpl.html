@@ -39,8 +39,13 @@
 
 <script>
   window.populateSearchResults = function(data) {
-    // document.getElementById('keyword').value = data.keywords.join(', ');
     document.getElementById('keyword').value = data.keywords[0];
+    if(data.latitude != null){
+      document.getElementById('latitude').value = data.latitude;
+    }
+    if(data.longitude != null){
+      document.getElementById('longitude').value = data.longitude;
+    }
     document.querySelector('button[type="submit"]').click();
   };
 </script>

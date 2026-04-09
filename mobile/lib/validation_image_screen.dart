@@ -46,7 +46,7 @@ class _ValidateImageScreenState extends State<ValidateImageScreen> {
     );
   }
 
-  Future<List<String>> searchImages() async {
+  Future<Map<String, dynamic>> searchImages() async {
     final url = Uri.parse('$baseUrl/search/image');
     
     try {
@@ -81,13 +81,17 @@ class _ValidateImageScreenState extends State<ValidateImageScreen> {
       
       if (response.statusCode == 200) {
         final data = jsonDecode(responseBody);
-        return List<String>.from(data['keywords'] ?? []);
+        return {
+          'keywords': List<String>.from(data['keywords'] ?? []),
+          'latitude': data['latitude'],
+          'longitude': data['longitude'],
+        };
       } else {
         throw Exception('Failed to search: ${response.statusCode}');
       }
     } catch (e) {
       print('Error searching image: $e');
-      return [];
+      return {'keywords': [], 'latitude': null, 'longitude': null};
     }
   }
 
@@ -101,7 +105,7 @@ class _ValidateImageScreenState extends State<ValidateImageScreen> {
   @override
   void initState() {
     super.initState();
-    debugPrint('Lat: ${widget.latitude}, Long: ${widget.longitude}');
+    // debugPrint('Lat: ${widget.latitude}, Long: ${widget.longitude}');
     if (widget.latitude != null && widget.longitude != null) {
       _coordinatesController.text = '${widget.latitude}, ${widget.longitude}';
     }
@@ -257,12 +261,10 @@ class _ValidateImageScreenState extends State<ValidateImageScreen> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () async {
-                      final keywords = await searchImages();
-                      if (keywords.isNotEmpty && context.mounted) {
-                        final jsonData = jsonEncode({
-                          'keywords': keywords,
-                        });
-                        print('JS to run: window.populateSearchResults($jsonData);');
+                      final result = await searchImages();
+                      if (result['keywords'].isNotEmpty && context.mounted) {
+                        final jsonData = jsonEncode(result);
+                        // print('JS to run: window.populateSearchResults($jsonData);');
                         await widget.webViewController.runJavaScript(
                           'window.populateSearchResults($jsonData);',
                         );
