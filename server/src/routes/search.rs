@@ -189,19 +189,30 @@ pub async fn search_image(
     let mut image_bytes = None;
     let mut latitude = None;
     let mut longitude = None;
+    let mut location_str = None;
 
     while let Some(field) = multipart.next_field().await? {
         match field.name() {
             Some("image") => image_bytes = Some(field.bytes().await?.to_vec()),
             Some("latitude") => latitude = field.text().await?.parse().ok(),
             Some("longitude") => longitude = field.text().await?.parse().ok(),
+            Some("location") => location_str = Some(field.text().await?.to_string()),
             _ => {}
         }
     }
+    // println!("DEBUG: latitude={:?}, longitude={:?}, location_str={:?}", latitude, longitude, location_str);
 
     let image = image_bytes.ok_or_else(|| {
         poem::Error::from_string("image is required", poem::http::StatusCode::BAD_REQUEST)
     })?;
+
+    // If location string provided but no coords, geocode it
+    if location_str.is_some() && latitude.is_none() && longitude.is_none() {
+        if let Some(coords) = geocode_location(&location_str.unwrap()).await {
+            latitude = Some(coords.0);
+            longitude = Some(coords.1);
+        }
+    }
 
     let image_base64 = encode_image(&image);
     let keywords = ai_service.generate_tags(&image_base64).await?;
@@ -209,10 +220,44 @@ pub async fn search_image(
     //     .into_iter()
     //     .map(|s| s.to_string())
     //     .collect();
+    
+    // println!("DEBUG: Returning - keywords={:?}, latitude={:?}, longitude={:?}", keywords, latitude, longitude);
 
     Ok(Json(ImageSearchResponse {
         keywords,
         latitude,
         longitude,
     }))
+}
+
+async fn geocode_location(location: &str) -> Option<(f64, f64)> {
+    let url = format!(
+        "https://nominatim.openstreetmap.org/search?q={}&format=json&limit=1",
+        urlencoding::encode(location)
+    );
+
+    // println!("DEBUG: Geocoding '{}' with URL: {}", location, url);
+
+    let response = reqwest::Client::new()
+        .get(&url)
+        .header("User-Agent", "AcmeScience-App/1.0")
+        .send()
+        .await
+        .ok()?;
+
+    // println!("DEBUG: Got response status: {}", response.status());
+
+    let data: Vec<serde_json::Value> = response.json().await.ok()?;
+    
+    // println!("DEBUG: Parsed JSON: {:?}", data);
+    
+    if let Some(result) = data.first() {
+        let lat = result.get("lat")?.as_str()?.parse::<f64>().ok()?;
+        let lon = result.get("lon")?.as_str()?.parse::<f64>().ok()?;
+        // println!("DEBUG: Found lat={}, lon={}", lat, lon);
+        return Some((lat, lon));
+    }
+
+    // println!("DEBUG: No results in geocoding response");
+    None
 }

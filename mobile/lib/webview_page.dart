@@ -32,7 +32,7 @@ class _WebViewPageState extends State<WebViewPage> {
   Future<void> _clearCookies() async {
     final cookieManager = WebViewCookieManager();
     await cookieManager.clearCookies();
-    debugPrint('🧹 WebView cookies cleared');
+    // debugPrint('🧹 WebView cookies cleared');
   }
 
   Future<void> _handlePageChange(String url) async {
@@ -44,14 +44,14 @@ class _WebViewPageState extends State<WebViewPage> {
 
     // iOS-only guard will go here later
     // Permissions trigger will go here later
-    debugPrint('✅ On /search and authenticated');
+    // debugPrint('✅ On /search and authenticated');
 
     if (_permissionsRequested) {
-      debugPrint('Permissions already requested, skipping');
+      // debugPrint('Permissions already requested, skipping');
       return;
     }
 
-    debugPrint('🚀 Triggering permissions flow');
+    // debugPrint('🚀 Triggering permissions flow');
     await _requestPermissions();
     _permissionsRequested = true;
   }
@@ -61,7 +61,7 @@ class _WebViewPageState extends State<WebViewPage> {
       'document.cookie',
     );
 
-    debugPrint('Cookies: $cookies');
+    // debugPrint('Cookies: $cookies');
 
     if (cookies is String) {
       return cookies.contains('session_id=');
@@ -71,12 +71,12 @@ class _WebViewPageState extends State<WebViewPage> {
   }
 
   Future<void> _requestPermissions() async {
-    debugPrint('🚀 Triggering permissions flow');
+    // debugPrint('🚀 Triggering permissions flow');
 
     final ok = await PermissionsGate.ensureCameraAndLocation();
 
     if (!ok) {
-      debugPrint('🚫 Permissions not granted');
+      // debugPrint('🚫 Permissions not granted');
       return;
     }
     if (ok) {
@@ -94,7 +94,7 @@ class _WebViewPageState extends State<WebViewPage> {
       );
       return position;
     } catch (e) {
-      debugPrint('Error getting location: $e');
+      // debugPrint('Error getting location: $e');
       return null;
     }
   }

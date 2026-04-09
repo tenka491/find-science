@@ -37,20 +37,20 @@ struct LogInFormTemplate {
 
 #[handler]
 pub async fn login_page(token: &CsrfToken) -> Result<Html<String>> {
-  render_with_layout(
-    "Log In",
-    LogInFormTemplate {
-      csrf_token: token.0.clone(),
-      message: None,
-    },
-  )
+    render_with_layout(
+        "Log In",
+        LogInFormTemplate {
+        csrf_token: token.0.clone(),
+        message: None,
+        },
+    )
 }
 
 #[handler]
 pub async fn login_post(
-  Data(pool): Data<&SqlitePool>,
-  jar: &CookieJar,
-  form: Form<LoginFormData>,
+    Data(pool): Data<&SqlitePool>,
+    jar: &CookieJar,
+    form: Form<LoginFormData>,
 ) -> Result<Redirect> {
     let data = form.0;
 
