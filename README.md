@@ -21,7 +21,7 @@ The repo holds two apps and some helper scripts.
 - Styles use Tailwind v4. `server/styles/input.css` compiles to `server/static/style.css`.
 - Data is stored in SQLite and accessed through SQLx. SQLx checks SQL queries at compile time, so the server needs a migrated database before it compiles.
 - Project search goes through a `ProjectsService` trait. If `PROJECTS_API_URL` is unset, the server uses built-in mock data, so search works with no external API.
-- Photo search goes through an `AiService` trait. The server sends the image to a local Ollama model (`llava`), which returns keywords.
+- Photo search goes through an `AiService` trait. `AI_PROVIDER` picks the implementation. With `ollama`, the server sends the image to a local Ollama model (`llava`), which returns keywords. With `mock` (the default), it returns fixed keywords so the flow runs without Docker.
 
 ### Mobile app
 
@@ -59,14 +59,19 @@ The server runs at http://localhost:3000. Sign up for an account, then log in to
 
 To reload the server on every code change, run `cargo watch -x run`.
 
-### 2. Start the AI service (optional)
+### 2. Turn on AI photo tagging (optional)
 
-Keyword search works without this step. Photo search needs it.
+By default the server uses mock AI tags, so photo search returns the same keywords for every photo. To tag photos with a real model:
 
-```bash
-./scripts/dev-ai        # start Ollama and pull the llava model
-./scripts/dev-ai-stop   # stop it
-```
+1. Start Ollama. The first run downloads the `llava` model, which takes a while.
+
+   ```bash
+   ./scripts/dev-ai        # start Ollama and pull the llava model
+   ./scripts/dev-ai-stop   # stop it later
+   ```
+
+2. In `server/.env`, set `AI_PROVIDER=ollama`.
+3. Restart the server. The startup log shows `AI: using Ollama at http://localhost:11434 with model llava`.
 
 ### 3. Start the mobile app
 
@@ -90,6 +95,8 @@ The server reads `server/.env` at startup.
 | Variable | Purpose |
 | --- | --- |
 | `DATABASE_URL` | SQLite database used by SQLx at compile time and by `sqlx-cli`. |
+| `AI_PROVIDER` | `mock` (default) or `ollama`. Any other value stops the server at startup. |
+| `OLLAMA_BASE_URL` | Ollama address. Defaults to `http://localhost:11434`. |
 | `OLLAMA_MODEL` | Ollama model used for photo tagging. Defaults to `llava`. |
 | `PROJECTS_API_URL` | Real projects API. Leave it unset to use mock data. |
 | `PROJECTS_BASE_URL` | Prefix for relative project links returned by the API. |

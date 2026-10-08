@@ -22,6 +22,7 @@ use routes::signup_success;
 use routes::login;
 use routes::search;
 use crate::services::ai::{AiService};
+use crate::services::ai::mock::MockAiService;
 use crate::services::ai::ollama::OllamaClient;
 use crate::services::projects::ProjectsService;
 use crate::services::projects::http::HttpProjectsService;
@@ -42,12 +43,24 @@ pub fn db() -> &'static Pool<Sqlite> {
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     dotenvy::dotenv().ok();
-    let ai_service: Arc<dyn AiService> = Arc::new(OllamaClient::new(
-        std::env::var("OLLAMA_URL").unwrap_or_else(|_| "http://localhost:11434".to_string()),
-        std::env::var("OLLAMA_MODEL").unwrap_or_else(|_| "llava".to_string()),
-    ));
-
     tracing_subscriber::fmt::init();
+
+    // AI_PROVIDER picks the image tagger. Unset means mock, so AI is optional.
+    let ai_provider = std::env::var("AI_PROVIDER").unwrap_or_default();
+    let ai_service: Arc<dyn AiService> = match ai_provider.trim() {
+        "ollama" => {
+            let base_url = std::env::var("OLLAMA_BASE_URL")
+                .unwrap_or_else(|_| "http://localhost:11434".to_string());
+            let model = std::env::var("OLLAMA_MODEL").unwrap_or_else(|_| "llava".to_string());
+            info!("AI: using Ollama at {} with model {}", base_url, model);
+            Arc::new(OllamaClient::new(base_url, model))
+        }
+        "" | "mock" => {
+            info!("AI: using mock tags");
+            Arc::new(MockAiService)
+        }
+        other => anyhow::bail!("unknown AI_PROVIDER {other:?}, expected \"ollama\" or \"mock\""),
+    };
 
     // Use the real projects API when one is configured, otherwise sample data.
     let projects_service: Arc<dyn ProjectsService> = match std::env::var("PROJECTS_API_URL") {

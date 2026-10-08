@@ -60,7 +60,7 @@ flutter test
 - `GET /search/results` (`routes/search.rs`) calls the `ProjectsService` trait (`services/projects/`). It maps results into `ProjectCard` and returns an HTMX partial. The "load more" button uses the returned `next` page number. Page size is `PAGE_SIZE` (10).
 - `main.rs` picks the `ProjectsService` at startup. If `PROJECTS_API_URL` is set, it uses `HttpProjectsService`, which sends `q`, `lat`, `lng`, and `page` to that URL. Otherwise it uses `MockProjectsService`, which serves 12 sample projects and matches keywords against name, goal, and task. Relative project links are prefixed with `PROJECTS_BASE_URL`. Absolute links pass through unchanged.
 - `POST /search/image` takes multipart fields `image`, `latitude`, `longitude`, and `location`. It geocodes a free-text location through OpenStreetMap Nominatim when no coordinates are given. It sends the base64 image to the `AiService` trait (`services/ai/`) and returns JSON `{keywords, latitude, longitude}`.
-- `AiService` has two implementations: `OllamaClient` (calls `/api/generate`, splits the reply on commas) and `MockAiService` (fixed tags, used in tests). `main.rs` always builds `OllamaClient`. It reads `OLLAMA_URL` and `OLLAMA_MODEL`. It does not read `AI_PROVIDER` or `OLLAMA_BASE_URL`, even though `.env` and `scripts/README.md` mention them.
+- `AiService` has two implementations: `OllamaClient` (calls `/api/generate`, splits the reply on commas) and `MockAiService` (fixed tags, used in tests). `main.rs` picks one from `AI_PROVIDER`: `ollama` builds `OllamaClient` from `OLLAMA_BASE_URL` and `OLLAMA_MODEL`. `mock` or unset uses `MockAiService`. Any other value makes startup fail. The tracked `.env` sets `mock`.
 
 ### Mobile and server bridge
 
