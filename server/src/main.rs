@@ -23,6 +23,9 @@ use routes::login;
 use routes::search;
 use crate::services::ai::{AiService};
 use crate::services::ai::ollama::OllamaClient;
+use crate::services::projects::ProjectsService;
+use crate::services::projects::http::HttpProjectsService;
+use crate::services::projects::mock::MockProjectsService;
 
 #[derive(rust_embed::RustEmbed)]
 #[folder = "static"]
@@ -46,6 +49,18 @@ async fn main() -> anyhow::Result<()> {
 
     tracing_subscriber::fmt::init();
 
+    // Use the real projects API when one is configured, otherwise sample data.
+    let projects_service: Arc<dyn ProjectsService> = match std::env::var("PROJECTS_API_URL") {
+        Ok(url) if !url.is_empty() => {
+            info!("Projects: using API at {}", url);
+            Arc::new(HttpProjectsService::new(&url)?)
+        }
+        _ => {
+            info!("Projects: PROJECTS_API_URL not set, using mock data");
+            Arc::new(MockProjectsService)
+        }
+    };
+
     let pool = SqlitePool::connect("sqlite:data.db").await?;
     sqlx::migrate!().run(&pool).await?;
     DB_POOL.set(pool.clone()).expect("database pool already initialized");
@@ -66,6 +81,7 @@ async fn main() -> anyhow::Result<()> {
         .at("/search/image", post(search::search_image))
         .nest("/static", EmbeddedFilesEndpoint::<StaticFiles>::new())
         .data(ai_service.clone())
+        .data(projects_service)
         .with(Csrf::new())
         // .with(ServerSession::new(
         //     poem::session::CookieConfig::default(),

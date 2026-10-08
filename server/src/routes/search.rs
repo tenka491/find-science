@@ -3,13 +3,13 @@ use poem::{
     web::{CsrfToken, Data, Html, Json, Multipart, Query},
     Result,
 };
-use reqwest::Url;
 use sailfish::TemplateOnce;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
 use crate::render::render_with_layout;
 use crate::services::ai::AiService;
+use crate::services::projects::{PAGE_SIZE, ProjectQuery, ProjectsService};
 use crate::utils::image::encode_image;
 
 // ===== Form Input =====
@@ -20,24 +20,6 @@ pub struct SearchForm {
     pub latitude: Option<String>,
     pub longitude: Option<String>,
     pub page: Option<usize>, // for pagination
-}
-
-// ===== API Response =====
-
-#[derive(Debug, Deserialize)]
-pub struct ProjectsApiResponse {
-    pub total: Option<usize>,
-    pub page: Option<usize>,
-    pub entities: Vec<Project>,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct Project {
-    pub name: Option<String>,
-    pub link: Option<String>,
-    pub goal: Option<String>,
-    pub task: Option<String>,
-    pub image: Option<String>,
 }
 
 // ===== UI Model =====
@@ -80,61 +62,29 @@ pub async fn search_page(token: &CsrfToken) -> Result<Html<String>> {
 }
 
 #[handler]
-pub async fn search_results(Query(form): Query<SearchForm>) -> Result<Html<String>> {
-    let page = form.page.unwrap_or(1);
-    
-    let api_url = std::env::var("PROJECTS_API_URL")
-    .unwrap_or_else(|_| "https://api.acme-science.example/projects?format=json".to_string());
-    
-    let mut url = Url::parse(&api_url).unwrap();
-    
-    // Build query
-    if let Some(lat) = &form.latitude {
-        if !lat.is_empty() {
-            url.query_pairs_mut().append_pair("lat", lat);
-        }
-    }
+pub async fn search_results(
+    Query(form): Query<SearchForm>,
+    projects_service: Data<&Arc<dyn ProjectsService>>,
+) -> Result<Html<String>> {
+    let query = ProjectQuery {
+        keywords: form.keywords,
+        latitude: form.latitude,
+        longitude: form.longitude,
+        page: form.page.unwrap_or(1),
+    };
 
-    if let Some(lng) = &form.longitude {
-        if !lng.is_empty() {
-            url.query_pairs_mut().append_pair("lng", lng);
-        }
-    }
-   
-    if let Some(keywords) = &form.keywords {
-        if !keywords.is_empty() {
-            url.query_pairs_mut().append_pair("q", keywords);
-        }
-    }
-    
-    url.query_pairs_mut()
-        .append_pair("page", &page.to_string());
-    
-        tracing::info!("Acme Science URL: {}", url);
+    let data = projects_service.search(&query).await?;
 
-    // Call API
-    let resp = reqwest::Client::new()
-        .get(url)
-        .send()
-        .await
-        .map_err(poem::error::InternalServerError)?;
-
-    let data: ProjectsApiResponse = resp
-        .json()
-        .await
-        .map_err(poem::error::InternalServerError)?;
-    
     // Set Page #
     let total = data.total.unwrap_or(0);
     let page = data.page.unwrap_or(1);
     let per_page = data.entities.len();
-    let per_page_max = 10; // whatever the API's fixed page size is
 
-    let fetched_so_far = (page - 1) * per_page_max + per_page;
+    let fetched_so_far = (page - 1) * PAGE_SIZE + per_page;
     let has_more = fetched_so_far < total;
 
     let next_page = if has_more { Some(page + 1) } else { None };
-    
+
     // Map API → UI model
     let base_url = std::env::var("PROJECTS_BASE_URL")
             .unwrap_or_else(|_| "http://localhost:3000".to_string());
@@ -144,11 +94,11 @@ pub async fn search_results(Query(form): Query<SearchForm>) -> Result<Html<Strin
         .into_iter()
         .map(|p| ProjectCard {
             title: p.name.unwrap_or_else(|| "Untitled Project".into()),
-            // link: p.link.unwrap_or_else(|| "#".into()),
             goal: p.goal.unwrap_or_else(|| "No goal listed.".into()),
             task: p.task.unwrap_or_else(|| "No task listed.".into()),
-            image: p.image.unwrap_or_else(|| "/static/placeholder.jpg".into()),
+            image: p.image.unwrap_or_else(|| "/static/placeholder.svg".into()),
             link: match p.link {
+                Some(ref link) if link.starts_with("http") => link.clone(),
                 Some(ref link) => {
                     format!(
                         "{}/{}",
